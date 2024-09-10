@@ -1,0 +1,39 @@
+
+<!-- This document forms the dockable panel. The button is the <input> tag below. The <style> formats the button. 
+
+		The extendscript is called through the <script type="text/javascript"> tag, which then routes it to use the adobe_cep_.evalScript to interpret that Javascript into Extendscript -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Notability</title>
+    <script src="./lib/CSInterface.js"></script>
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');</style>
+</head>
+<body>
+    <p class="wrapper">
+    <div>
+    <input type="text" id="form1" value="Link das notas">
+    </div>
+
+    <div>
+    <button class="buttonStyle" id="loadNotesButton" type="button" onclick="runAll()">Carregar Link</button>
+    <label for="fileInputNotes">Importar Aulas</label>
+    <input  type="file" id="fileInputNotes">
+    </div>
+
+    <div>
+    <select id="myDropdown">
+        <option value="">Aula</option>
+    </select>
+    </div>
+    <div>
+    <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTL()">Timeline</button>
+    <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTrack()">Track</button>
+    </div>
+</body>
+</html>
