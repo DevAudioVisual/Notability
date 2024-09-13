@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const XLSX = require('xlsx');
 
 // URL da planilha (troque com o link da sua planilha)
@@ -7,7 +8,10 @@ const sheetID = process.argv[2];
 const sheetURL = 'https://docs.google.com/spreadsheets/d/' + sheetID + '/export?format=xlsx';
 
 // Caminho temporário para salvar o arquivo XLSX baixado
-const tempFilePath = path.join(__dirname, 'temp_sheet.xlsx');
+const tempFilePath = path.join(os.tmpdir(), 'temp_sheet.xlsx');
+
+// Caminho temporário para salvar o arquivo JSON extraído
+const tempJsonPath = path.join(os.tmpdir(), 'extracted_data.json');
 
 // Função para baixar o arquivo XLSX
 async function downloadSheet(url, destination) {
@@ -67,11 +71,11 @@ function processSheet(filePath) {
         desiredData.push(row);
     }
 
-    // Salva os dados extraídos em um arquivo JSON
+    // Salva os dados extraídos em um arquivo JSON no diretório temporário
     const jsonData = JSON.stringify(desiredData, null, 2);
-    fs.writeFileSync(path.join(__dirname, 'extracted_data.json'), jsonData);
+    fs.writeFileSync(tempJsonPath, jsonData);
 
-    console.log('Dados extraídos e salvos como JSON.');
+    console.log(`Dados extraídos e salvos como JSON no diretório temporário: ${tempJsonPath}`);
 }
 
 // Função principal para executar os passos
@@ -82,9 +86,9 @@ async function main() {
         
         processSheet(tempFilePath);
 
-        // Remove o arquivo temporário
+        // Remove o arquivo temporário XLSX
         fs.unlinkSync(tempFilePath);
-        console.log('Arquivo temporário deletado.');
+        console.log('Arquivo temporário XLSX deletado.');
     } catch (error) {
         console.error('Erro:', error);
     }
