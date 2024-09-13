@@ -1,32 +1,26 @@
-        function runAll() {
-            var cs = new CSInterface();
-            var form1 = document.getElementById("form1").value;
-            cs.evalScript('var sheetURL = "' + form1 + '";');
-            cs.evalScript('$.runScript.fetchNotas()');
-        }   
+var selectedFilePath = "";
 
-      function markerNaTL () {
-            var cs = new CSInterface();
-            var qualAula = document.getElementById("myDropdown").value;
-            cs.evalScript('var qualAula = "' + qualAula + '";')
-            cs.evalScript('$.runScript.markerNaTL()');
-        }
+function escapeFilePath(path) {
+    return path.replace(/\\/g, '\\\\');
+}
 
-       function markerNaTrack () {
-            var cs = new CSInterface();
-            var qualAula = document.getElementById("myDropdown").value;
-            cs.evalScript('var qualAula = "' + qualAula + '";')
-            cs.evalScript('$.runScript.markerNaTrack()');
-        }
+function runAll() {
+    var cs = new CSInterface();
+    var form1 = document.getElementById("form1").value;
+    cs.evalScript('var sheetURL = "' + form1 + '";');
+    cs.evalScript('$.runScript.fetchNotas()');
+}
 
-        function handleFileSelect(event) {
-    var file = event.target.files[0];
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var content = e.target.result;
+function selectFile() {
+    var cs = new CSInterface();
+    var result = window.cep.fs.showOpenDialog(false, false, 'Select a file', null, null);
+    if (result.err === window.cep.fs.NO_ERROR) {
+        var filePath = result.data[0];
+        selectedFilePath = filePath;
+        var readResult = window.cep.fs.readFile(filePath);
+        if (readResult.err === 0) {
+            var content = readResult.data;
             var dropdown = document.getElementById('myDropdown');
-            // Remove todas as opções do dropdown
             dropdown.innerHTML = '';
 
             var jsonData = JSON.parse(content);
@@ -37,23 +31,38 @@
                 }
             });
 
-            // Adiciona as opções no dropdown
-            uniqueValues.forEach(function(value, index) {
+            uniqueValues.forEach(function(value) {
                 var option = document.createElement('option');
                 option.textContent = value;
-                option.value = index; // Valor do índice
+                option.value = value; // Use the actual value
                 dropdown.appendChild(option);
             });
-        };
-        reader.readAsText(file);
+        }
     }
 }
 
+function markerNaTL() {
+    var cs = new CSInterface();
+    var qualAula = document.getElementById("myDropdown").value;
+    if (!qualAula) {
+        alert('Please select an Aula.');
+        return;
+    }
+    cs.evalScript('var qualAula = "' + qualAula + '"; var selectedFilePath = "' + escapeFilePath(selectedFilePath) + '"; $.runScript.markerNaTL();');
+}
+
+function markerNaTrack() {
+    var cs = new CSInterface();
+    var qualAula = document.getElementById("myDropdown").value;
+    if (!qualAula) {
+        alert('Please select an Aula.');
+        return;
+    }
+    cs.evalScript('var qualAula = "' + qualAula + '"; var selectedFilePath = "' + escapeFilePath(selectedFilePath) + '"; $.runScript.markerNaTrack();');
+}
+
 function init() {
-    document.getElementById('fileInputNotes').addEventListener('change', handleFileSelect);
+    document.getElementById('selectFileButton').addEventListener('click', selectFile);
 }
 
 document.addEventListener('DOMContentLoaded', init);
-
-
-

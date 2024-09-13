@@ -15,25 +15,28 @@
     <style>@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');</style>
 </head>
 <body>
-    <p class="wrapper">
-    <div>
-    <input type="text" id="form1" value="Link das notas">
-    </div>
-
-    <div>
-    <button class="buttonStyle" id="loadNotesButton" type="button" onclick="runAll()">Carregar Link</button>
-    <label for="fileInputNotes">Importar Aulas</label>
-    <input  type="file" id="fileInputNotes">
-    </div>
-
-    <div>
-    <select id="myDropdown">
-        <option value="">Aula</option>
-    </select>
-    </div>
-    <div>
-    <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTL()">Timeline</button>
-    <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTrack()">Track</button>
-    </div>
+    <body>
+        <p class="wrapper">
+        <div>
+            <input type="text" id="form1" value="Link das notas">
+        </div>
+    
+        <div>
+            <button class="buttonStyle" id="loadNotesButton" type="button" onclick="runAll()">Carregar Link</button>
+            <button class="buttonStyle" id="selectFileButton">Importar Aulas</button>
+        </div>
+    
+        <div>
+            <select id="myDropdown">
+                <option value="">Aula</option>
+            </select>
+        </div>
+        <div>
+            <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTL()">Timeline</button>
+            <button class="buttonStyle" id="applyButton" type="button" onclick="markerNaTrack()">Track</button>
+        </div>
+    </body>
+    
 </body>
+
 </html>
