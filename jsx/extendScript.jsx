@@ -1,68 +1,46 @@
 $.runScript = {
 
   fetchNotas: function() {
-      // URL da planilha
-      var url = sheetURL;
 
-      // Extraí o ID da planilha
-      var sheetID = extractSheetID(url);
+    var url = sheetURL;
+    var sheetID = extractSheetID(url);
 
-      // Exemplo de uso
-      createAndRunBatchFile(sheetID, limpaCelulas);
+    createAndRunBatchFile(sheetID);
 
-      // Função para extrair o ID da planilha da URL
-      function extractSheetID(url) {
-          var regex = /\/d\/([a-zA-Z0-9-_]+)\/|\/d\/([a-zA-Z0-9-_]+)(\/|$)/;
-          var match = url.match(regex);
-          
-          if (match) {
-              var sheetID = match[1] || match[2];
-              return sheetID;
-          } else {
-              throw new Error("ID da planilha não encontrado na URL.");
-          }
-      }
 
-      // Função para criar e executar o arquivo .bat
-      function createAndRunBatchFile(sheetID, callback) {
-          var batContent = '@echo off\n' +
-                           'set "SHEET_ID=' + sheetID + '"\n' +
-                           '"C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Notability\\js\\fetch-notas.js" %SHEET_ID%\n' +
-                           'pause'; // Adiciona pause para manter a janela aberta
+    function extractSheetID(url) {
+        var regex = /\/d\/([a-zA-Z0-9-_]+)\/|\/d\/([a-zA-Z0-9-_]+)(\/|$)/;
+        var match = url.match(regex);
 
-          var batFilePath = Folder.temp.fsName + "/runScript.bat";
-          var f = new File(batFilePath);
-          f.open("w");
-          f.writeln(batContent);
-          f.close();
-          f.execute();
-          
-          // Chama o callback após um atraso (ajuste o tempo conforme necessário)
-          $.sleep(1500); // Aguarda 1,5 segundos
-          if (typeof callback === "function") {
-              callback();
-          }
-      }
+        if (match) {
+            var sheetID = match[1] || match[2];
+            return sheetID;
+        } else {
+            throw new Error("ID da planilha não encontrado na URL.");
+        }
+    }
 
-      // Função para criar e executar o arquivo .bat para limpar células
-      function limpaCelulas() {
-          var batContent2 = '"C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Notability\\js\\limpa-json.js"\n' +
-                            'pause'; // Adiciona pause para manter a janela aberta
-          var batFilePath2 = Folder.temp.fsName + "/limpaJson.bat";
-          
-          var x = new File(batFilePath2);
-          x.open("w");
-          x.writeln(batContent2);
-          x.close();
-          x.execute();
-      }
+    function createAndRunBatchFile(sheetID) {
+        var batContent = '@echo off\n' +
+                         'set "SHEET_ID=' + sheetID + '"\n' +
+                         '"C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Notability\\js\\process-sheet.js" %SHEET_ID%\n';
+
+        var batFilePath = Folder.temp.fsName + "/runScript.bat";
+        var f = new File(batFilePath);
+        f.open("w");
+        f.writeln(batContent);
+        f.close();
+        f.execute();
+
+        $.sleep(1500); 
+    }
   },
 
   markerNaTL: function() {
       #include ./filterClass.jsx
       
-      // Agora o arquivo JSON é lido e gravado no Desktop
-      readJSONFile(File(Folder.desktop.fsName + "/cleaned_data.json")); // Usando o Desktop para o JSON
+
+      readJSONFile(File(Folder.desktop.fsName + "/cleaned_data.json"));
       separarIguais(aula);
       separaUpdateLista();
       tempoMarker(); 
@@ -102,8 +80,8 @@ $.runScript = {
   markerNaTrack: function () {
       #include ./filterClass.jsx
 
-      // Agora o arquivo JSON é lido e gravado no Desktop
-      readJSONFile(File(Folder.desktop.fsName + "/cleaned_data.json")); // Usando o Desktop para o JSON
+
+      readJSONFile(File(Folder.desktop.fsName + "/cleaned_data.json")); 
       separarIguais(aula);
       separaUpdateLista();
       tempoMarker(); 

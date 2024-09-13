@@ -29,18 +29,18 @@ for (var i = 0; i < data.length; i++) {
 function separarIguais(arr) {
     var grupos = {};
 
-      // Percorre o array original
+
       for (var i = 0; i < arr.length; i++) {
           var valor = arr[i];
-          // Se ainda não existe um array para o valor, cria um novo
+
           if (!grupos[valor]) {
               grupos[valor] = [];
           }
-          // Adiciona o valor ao array correspondente
+
           grupos[valor].push(valor);
       }
 
-      // Converte o objeto para um array de arrays
+
       var resultado = [];
       for (var chave in grupos) {
           if (grupos.hasOwnProperty(chave)) {

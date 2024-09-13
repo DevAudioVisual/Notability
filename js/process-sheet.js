@@ -13,6 +13,10 @@ const tempFilePath = path.join(os.tmpdir(), 'temp_sheet.xlsx');
 // Caminho temporário para salvar o arquivo JSON extraído
 const tempJsonPath = path.join(os.tmpdir(), 'extracted_data.json');
 
+// Caminho para salvar o arquivo JSON limpo na área de trabalho
+const desktopDir = path.join(os.homedir(), 'Desktop');
+const outputFilePath = path.join(desktopDir, 'cleaned_data.json');
+
 // Função para baixar o arquivo XLSX
 async function downloadSheet(url, destination) {
     const fetch = (await import('node-fetch')).default;
@@ -25,57 +29,74 @@ async function downloadSheet(url, destination) {
     });
 }
 
-// Função para processar o arquivo XLSX
+// Função para processar o arquivo XLSX e salvar como JSON
 function processSheet(filePath) {
-    // Lê o arquivo XLSX
     const workbook = XLSX.readFile(filePath);
-
-    // Seleciona a primeira aba da planilha
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-
-    // Define o intervalo inicial
     const range = XLSX.utils.decode_range(worksheet['!ref']);
     const desiredData = [];
 
-    // Expressão regular para buscar valores no formato número.número
-    const regex = /^\d+\.\d+$/; // Expressão regular para "número ponto número"
-    
-    // Encontra a linha com um valor no formato número.número na coluna A
+    const regex = /^\d+\.\d+$/;
     let startRow = null;
-    for (let R = 0; R <= range.e.r; ++R) { // Itera sobre as linhas da planilha
-        const cellAddress = { c: 0, r: R }; // Coluna A (c: 0)
+
+    for (let R = 0; R <= range.e.r; ++R) {
+        const cellAddress = { c: 0, r: R };
         const cell = worksheet[XLSX.utils.encode_cell(cellAddress)];
-        
-        // Verifica se a célula existe e se o valor corresponde à expressão regular
-        if (cell && regex.test(cell.v.toString())) { 
-            startRow = R; // Define a linha inicial
-            break; // Sai do loop assim que encontrar
+        if (cell && regex.test(cell.v.toString())) {
+            startRow = R;
+            break;
         }
     }
 
-    // Se não encontrar nenhum valor no formato número.número, avisa e para a execução
     if (startRow === null) {
         console.error('Erro: Nenhum valor no formato número.número foi encontrado na coluna A.');
         return;
     }
 
-    // Itera sobre as linhas e extrai dados começando da linha encontrada
-    for (let R = startRow; R <= range.e.r; ++R) { 
+    for (let R = startRow; R <= range.e.r; ++R) {
         const row = {};
-        for (let C = 0; C <= 4; ++C) { // Colunas A (0), B (1), C (2), D (3)
+        for (let C = 0; C <= 4; ++C) {
             const cellAddress = { c: C, r: R };
             const cell = worksheet[XLSX.utils.encode_cell(cellAddress)];
-            row[`Column${C+1}`] = cell ? cell.v : ''; // Adiciona o valor da célula ou uma string vazia com chave "Column1", "Column2", etc.
+            row[`Column${C+1}`] = cell ? cell.v : '';
         }
         desiredData.push(row);
     }
 
-    // Salva os dados extraídos em um arquivo JSON no diretório temporário
     const jsonData = JSON.stringify(desiredData, null, 2);
     fs.writeFileSync(tempJsonPath, jsonData);
-
     console.log(`Dados extraídos e salvos como JSON no diretório temporário: ${tempJsonPath}`);
+}
+
+// Função para limpar o JSON e preencher os espaços vazios na Column1
+function cleanJSON(filePath, outputFilePath) {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+    let lastNonEmptyColumn1 = '';
+
+    const cleanedData = data
+        .filter(row => {
+            const isColumnAVazia = row.Column1 === '';
+            const isColumnBVazia = row.Column2 === '';
+            const isColumnCIgualWhite = row.Column3 === 'White';
+            const isColumnDVazia = row.Column4 === '';
+            const isColumnEVazia = row.Column5 === '';
+            const isEmptyRow = row.Column1 === '' && row.Column2 === '' && row.Column3 === '' && row.Column4 === '' && row.Column5 === '';
+
+            return !(isColumnAVazia && isColumnBVazia && isColumnCIgualWhite && isColumnDVazia && isColumnEVazia) && !isEmptyRow;
+        })
+        .map(row => {
+            if (row.Column1 === '') {
+                row.Column1 = lastNonEmptyColumn1;
+            } else {
+                lastNonEmptyColumn1 = row.Column1;
+            }
+            return row;
+        });
+
+    fs.writeFileSync(outputFilePath, JSON.stringify(cleanedData, null, 2));
+    console.log('JSON limpo, completado e salvo como:', outputFilePath);
 }
 
 // Função principal para executar os passos
@@ -89,6 +110,14 @@ async function main() {
         // Remove o arquivo temporário XLSX
         fs.unlinkSync(tempFilePath);
         console.log('Arquivo temporário XLSX deletado.');
+
+        // Limpa o JSON gerado e salva na área de trabalho
+        cleanJSON(tempJsonPath, outputFilePath);
+
+        // Remove o arquivo JSON temporário
+        fs.unlinkSync(tempJsonPath);
+        console.log('Arquivo JSON temporário deletado.');
+        
     } catch (error) {
         console.error('Erro:', error);
     }
