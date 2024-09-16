@@ -1,68 +1,79 @@
-var selectedFilePath = "";
-
-function escapeFilePath(path) {
-    return path.replace(/\\/g, '\\\\');
+function escapeString(str) {
+    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 function runAll() {
     var cs = new CSInterface();
     var form1 = document.getElementById("form1").value;
-    cs.evalScript('var sheetURL = "' + form1 + '";');
-    cs.evalScript('$.runScript.fetchNotas()');
+    cs.evalScript('var sheetURL = "' + escapeString(form1) + '"; $.runScript.fetchNotas();', function(response) {
+        // After fetching, update the dropdown
+        loadDataFromProjectFolder();
+    });
 }
 
-function selectFile() {
+function loadDataFromProjectFolder() {
     var cs = new CSInterface();
-    var result = window.cep.fs.showOpenDialog(false, false, 'Select a file', null, null);
-    if (result.err === window.cep.fs.NO_ERROR) {
-        var filePath = result.data[0];
-        selectedFilePath = filePath;
-        var readResult = window.cep.fs.readFile(filePath);
-        if (readResult.err === 0) {
-            var content = readResult.data;
-            var dropdown = document.getElementById('myDropdown');
-            dropdown.innerHTML = '';
+    cs.evalScript('$.runScript.getProjectFolderPath();', function(projectFolderPath) {
+        if (projectFolderPath) {
+            var cleanedDataPath = projectFolderPath + '/cleaned_data.json';
 
-            var jsonData = JSON.parse(content);
-            var uniqueValues = [];
-            jsonData.forEach(function(item) {
-                if (item.Column1 && uniqueValues.indexOf(item.Column1) === -1) {
-                    uniqueValues.push(item.Column1);
-                }
-            });
-
-            uniqueValues.forEach(function(value) {
-                var option = document.createElement('option');
-                option.textContent = value;
-                option.value = value; // Use the actual value
-                dropdown.appendChild(option);
-            });
+            // Read the cleaned_data.json file
+            var readResult = window.cep.fs.readFile(cleanedDataPath);
+            if (readResult.err === 0) {
+                var content = readResult.data;
+                var jsonData = JSON.parse(content);
+                populateDropdown(jsonData);
+            } else {
+                alert('Erro ao ler o arquivo cleaned_data.json: ' + readResult.err);
+            }
+        } else {
+            alert('Não foi possível obter o caminho da pasta do projeto.');
         }
-    }
+    });
+}
+
+function populateDropdown(jsonData) {
+    var dropdown = document.getElementById('myDropdown');
+    dropdown.innerHTML = '';
+
+    var uniqueValues = [];
+    jsonData.forEach(function(item) {
+        if (item.Column1 && uniqueValues.indexOf(item.Column1) === -1) {
+            uniqueValues.push(item.Column1);
+        }
+    });
+
+    uniqueValues.forEach(function(value) {
+        var option = document.createElement('option');
+        option.textContent = value;
+        option.value = value;
+        dropdown.appendChild(option);
+    });
 }
 
 function markerNaTL() {
     var cs = new CSInterface();
     var qualAula = document.getElementById("myDropdown").value;
     if (!qualAula) {
-        alert('Please select an Aula.');
+        alert('Por favor, selecione uma Aula.');
         return;
     }
-    cs.evalScript('var qualAula = "' + qualAula + '"; var selectedFilePath = "' + escapeFilePath(selectedFilePath) + '"; $.runScript.markerNaTL();');
+    cs.evalScript('var qualAula = "' + escapeString(qualAula) + '"; $.runScript.markerNaTL();');
 }
 
 function markerNaTrack() {
     var cs = new CSInterface();
     var qualAula = document.getElementById("myDropdown").value;
     if (!qualAula) {
-        alert('Please select an Aula.');
+        alert('Por favor, selecione uma Aula.');
         return;
     }
-    cs.evalScript('var qualAula = "' + qualAula + '"; var selectedFilePath = "' + escapeFilePath(selectedFilePath) + '"; $.runScript.markerNaTrack();');
+    cs.evalScript('var qualAula = "' + escapeString(qualAula) + '"; $.runScript.markerNaTrack();');
 }
 
 function init() {
-    document.getElementById('selectFileButton').addEventListener('click', selectFile);
+    document.getElementById('loadNotesButton').addEventListener('click', runAll);
+    document.getElementById('updateDataButton').addEventListener('click', loadDataFromProjectFolder);
 }
 
 document.addEventListener('DOMContentLoaded', init);

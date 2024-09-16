@@ -1,16 +1,23 @@
+// Ensure that the XMP library is available
+if (ExternalObject.AdobeXMPScript === undefined) {
+    ExternalObject.AdobeXMPScript = new ExternalObject('lib:AdobeXMPScript');
+}
+
 $.runScript = {
 
     fetchNotas: function() {
+
         var url = sheetURL;
         var sheetID = extractSheetID(url);
-    
-        createAndRunBatchFile(sheetID);
-    
-    
+
+        var projectFolderPath = $.runScript.getProjectFolderPath();
+
+        createAndRunBatchFile(sheetID, projectFolderPath);
+
         function extractSheetID(url) {
             var regex = /\/d\/([a-zA-Z0-9-_]+)\/|\/d\/([a-zA-Z0-9-_]+)(\/|$)/;
             var match = url.match(regex);
-    
+
             if (match) {
                 var sheetID = match[1] || match[2];
                 return sheetID;
@@ -18,261 +25,186 @@ $.runScript = {
                 throw new Error("ID da planilha não encontrado na URL.");
             }
         }
-    
-        function createAndRunBatchFile(sheetID) {
+
+        function createAndRunBatchFile(sheetID, projectFolderPath) {
             var batContent = '@echo off\n' +
                              'set "SHEET_ID=' + sheetID + '"\n' +
-                             '"C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Notability\\js\\process-sheet.js" %SHEET_ID%\n';
-    
+                             'set "OUTPUT_DIR=' + projectFolderPath + '"\n' +
+                             '"C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Notability\\js\\process-sheet.js" %SHEET_ID% "%OUTPUT_DIR%"\n';
+
             var batFilePath = Folder.temp.fsName + "/runScript.bat";
             var f = new File(batFilePath);
             f.open("w");
             f.writeln(batContent);
             f.close();
             f.execute();
-    
-            $.sleep(1500); 
+
+            $.sleep(3000); 
         }
     },
-  
-    markerNaTL: function() {
-          "object"!=typeof JSON&&(JSON={}),function(){"use strict";var rx_one=/^[\],:{}\s]*$/,rx_two=/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,rx_three=/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,rx_four=/(?:^|:|,)(?:\s*\[)+/g,rx_escapable=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,rx_dangerous=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta,rep;function f(t){return t<10?"0"+t:t}function this_value(){return this.valueOf()}function quote(t){return rx_escapable.lastIndex=0,rx_escapable.test(t)?'"'+t.replace(rx_escapable,function(t){var e=meta[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+t+'"'}function str(t,e){var r,n,o,u,f,a=gap,i=e[t];switch(i&&"object"==typeof i&&"function"==typeof i.toJSON&&(i=i.toJSON(t)),"function"==typeof rep&&(i=rep.call(e,t,i)),typeof i){case"string":return quote(i);case"number":return isFinite(i)?String(i):"null";case"boolean":case"null":return String(i);case"object":if(!i)return"null";if(gap+=indent,f=[],"[object Array]"===Object.prototype.toString.apply(i)){for(u=i.length,r=0;r<u;r+=1)f[r]=str(r,i)||"null";return o=0===f.length?"[]":gap?"[\n"+gap+f.join(",\n"+gap)+"\n"+a+"]":"["+f.join(",")+"]",gap=a,o}if(rep&&"object"==typeof rep)for(u=rep.length,r=0;r<u;r+=1)"string"==typeof rep[r]&&(o=str(n=rep[r],i))&&f.push(quote(n)+(gap?": ":":")+o);else for(n in i)Object.prototype.hasOwnProperty.call(i,n)&&(o=str(n,i))&&f.push(quote(n)+(gap?": ":":")+o);return o=0===f.length?"{}":gap?"{\n"+gap+f.join(",\n"+gap)+"\n"+a+"}":"{"+f.join(",")+"}",gap=a,o}}"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+f(this.getUTCMonth()+1)+"-"+f(this.getUTCDate())+"T"+f(this.getUTCHours())+":"+f(this.getUTCMinutes())+":"+f(this.getUTCSeconds())+"Z":null},Boolean.prototype.toJSON=this_value,Number.prototype.toJSON=this_value,String.prototype.toJSON=this_value),"function"!=typeof JSON.stringify&&(meta={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},JSON.stringify=function(t,e,r){var n;if(indent=gap="","number"==typeof r)for(n=0;n<r;n+=1)indent+=" ";else"string"==typeof r&&(indent=r);if((rep=e)&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return str("",{"":t})}),"function"!=typeof JSON.parse&&(JSON.parse=function(text,reviver){var j;function walk(t,e){var r,n,o=t[e];if(o&&"object"==typeof o)for(r in o)Object.prototype.hasOwnProperty.call(o,r)&&(void 0!==(n=walk(o,r))?o[r]=n:delete o[r]);return reviver.call(t,e,o)}if(text=String(text),rx_dangerous.lastIndex=0,rx_dangerous.test(text)&&(text=text.replace(rx_dangerous,function(t){return"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})),rx_one.test(text.replace(rx_two,"@").replace(rx_three,"]").replace(rx_four,"")))return j=eval("("+text+")"),"function"==typeof reviver?walk({"":j},""):j;throw new SyntaxError("JSON.parse")})}();
-  
-      // Ensure 'selectedFilePath' and 'qualAula' are defined
-      if (typeof selectedFilePath === 'undefined' || !selectedFilePath) {
-          alert('selectedFilePath is not defined or empty');
-          return;
-      }
-  
-      if (typeof qualAula === 'undefined' || !qualAula) {
-          alert('qualAula is not defined or empty');
-          return;
-      }
-  
-      var aula = [];
-      var tempo = [];
-      var tipo = [];
-      var texto = [];
-      var grupos = {};
-      var aulaSeparadas = [];
-      var aulasUnicas = [];
-  
-      var file = new File(selectedFilePath);
-      if (!file.exists) {
-          alert('File does not exist: ' + selectedFilePath);
-          return;
-      }
-  
-      readJSONFile(file);
-      separarIguais(aula);
-      separaUpdateLista();
-      tempoMarker(); 
-  
-      function readJSONFile(file) {
-          file.open("r");    
-          var data = file.read();
-          file.close();
-          data = JSON.parse(data);
-          
-          for (var i = 0; i < data.length; i++) {
-              var item = data[i];
-              aula.push(item["Column1"]);
-              tempo.push(item["Column2"]);
-              tipo.push(item["Column4"]);
-              texto.push(item["Column5"]);
-          }
-      }
-  
-      function separarIguais(arr) {
-          grupos = {};
-  
-          for (var i = 0; i < arr.length; i++) {
-              var valor = arr[i];
-  
-              if (!grupos[valor]) {
-                  grupos[valor] = [];
-              }
-  
-              grupos[valor].push(i);  // Store index
-          }
-  
-          for (var chave in grupos) {
-              if (grupos.hasOwnProperty(chave)) {
-                  aulaSeparadas.push(grupos[chave]);
-              }
-          }
-      }
-  
-      function separaUpdateLista() {
-          for (var chave in grupos) {
-              if (grupos.hasOwnProperty(chave)) {
-                  aulasUnicas.push(chave);
-              }
-          }
-      } 
-  
-      function tempoMarker() {
-          var index = aulasUnicas.indexOf(qualAula);
-          if (index === -1) {
-              alert('Aula not found: ' + qualAula);
-              return;
-          }
-          var indices = aulaSeparadas[index]; // Indices of the selected 'aula'
-          var numeroAula = indices.length;
-          var sequence = app.project.activeSequence;
-          if (!sequence) {
-              alert('No active sequence.');
-              return;
-          }
-          var markers = sequence.markers;
-  
-          for (var t = 0; t < numeroAula; t++) {
-              var idx = indices[t]; // Index into the arrays
-              var tempoFormated = tempo[idx];
-              var partes = tempoFormated.split(':');
-              var minutos = parseInt(partes[0], 10);
-              var segundos = parseInt(partes[1], 10);
-              var tempoSec = minutos * 60 + segundos;
-  
-              var newMark = markers.createMarker(tempoSec);
-              newMark.name = tipo[idx];
-              newMark.comments = texto[idx];
-  
-              if (tipo[idx] == "Corte") {
-                  newMark.setColorByIndex(1);
-              } else if (tipo[idx] == "Destaque") {
-                  newMark.setColorByIndex(2);
-              } else if (tipo[idx] == "Inserção") {
-                  newMark.setColorByIndex(4);
-              } else if (tipo[idx] == "Lettering") {
-                  newMark.setColorByIndex(6);
-              } else if (tipo[idx] == "Tópicos") {
-                  newMark.setColorByIndex(0);
-              }
-          }
-      }
-  
+
+    getProjectFolderPath: function() {
+        var projectPath = app.project.path;
+        if (!projectPath) {
+            return '';
+        }
+        var projectFile = new File(projectPath);
+        var projectFolder = projectFile.parent.fsName;
+        return projectFolder;
     },
-  
+
+     markerNaTL: function() {
+        var projectFolderPath = $.runScript.getProjectFolderPath();
+        if (!projectFolderPath) {
+            alert('Nenhum projeto aberto.');
+            return;
+        }
+        var dataFilePath = projectFolderPath + "/cleaned_data.json";
+        processMarkersFromFile(dataFilePath, 'timeline');
+    },
+
     markerNaTrack: function() {
-          "object"!=typeof JSON&&(JSON={}),function(){"use strict";var rx_one=/^[\],:{}\s]*$/,rx_two=/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,rx_three=/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,rx_four=/(?:^|:|,)(?:\s*\[)+/g,rx_escapable=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,rx_dangerous=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta,rep;function f(t){return t<10?"0"+t:t}function this_value(){return this.valueOf()}function quote(t){return rx_escapable.lastIndex=0,rx_escapable.test(t)?'"'+t.replace(rx_escapable,function(t){var e=meta[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+t+'"'}function str(t,e){var r,n,o,u,f,a=gap,i=e[t];switch(i&&"object"==typeof i&&"function"==typeof i.toJSON&&(i=i.toJSON(t)),"function"==typeof rep&&(i=rep.call(e,t,i)),typeof i){case"string":return quote(i);case"number":return isFinite(i)?String(i):"null";case"boolean":case"null":return String(i);case"object":if(!i)return"null";if(gap+=indent,f=[],"[object Array]"===Object.prototype.toString.apply(i)){for(u=i.length,r=0;r<u;r+=1)f[r]=str(r,i)||"null";return o=0===f.length?"[]":gap?"[\n"+gap+f.join(",\n"+gap)+"\n"+a+"]":"["+f.join(",")+"]",gap=a,o}if(rep&&"object"==typeof rep)for(u=rep.length,r=0;r<u;r+=1)"string"==typeof rep[r]&&(o=str(n=rep[r],i))&&f.push(quote(n)+(gap?": ":":")+o);else for(n in i)Object.prototype.hasOwnProperty.call(i,n)&&(o=str(n,i))&&f.push(quote(n)+(gap?": ":":")+o);return o=0===f.length?"{}":gap?"{\n"+gap+f.join(",\n"+gap)+"\n"+a+"}":"{"+f.join(",")+"}",gap=a,o}}"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+f(this.getUTCMonth()+1)+"-"+f(this.getUTCDate())+"T"+f(this.getUTCHours())+":"+f(this.getUTCMinutes())+":"+f(this.getUTCSeconds())+"Z":null},Boolean.prototype.toJSON=this_value,Number.prototype.toJSON=this_value,String.prototype.toJSON=this_value),"function"!=typeof JSON.stringify&&(meta={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},JSON.stringify=function(t,e,r){var n;if(indent=gap="","number"==typeof r)for(n=0;n<r;n+=1)indent+=" ";else"string"==typeof r&&(indent=r);if((rep=e)&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return str("",{"":t})}),"function"!=typeof JSON.parse&&(JSON.parse=function(text,reviver){var j;function walk(t,e){var r,n,o=t[e];if(o&&"object"==typeof o)for(r in o)Object.prototype.hasOwnProperty.call(o,r)&&(void 0!==(n=walk(o,r))?o[r]=n:delete o[r]);return reviver.call(t,e,o)}if(text=String(text),rx_dangerous.lastIndex=0,rx_dangerous.test(text)&&(text=text.replace(rx_dangerous,function(t){return"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})),rx_one.test(text.replace(rx_two,"@").replace(rx_three,"]").replace(rx_four,"")))return j=eval("("+text+")"),"function"==typeof reviver?walk({"":j},""):j;throw new SyntaxError("JSON.parse")})}();
-  
-      // Ensure 'selectedFilePath' and 'qualAula' are defined
-      if (typeof selectedFilePath === 'undefined' || !selectedFilePath) {
-          alert('selectedFilePath is not defined or empty');
-          return;
-      }
-  
-      if (typeof qualAula === 'undefined' || !qualAula) {
-          alert('qualAula is not defined or empty');
-          return;
-      }
-  
-      var aula = [];
-      var tempo = [];
-      var tipo = [];
-      var texto = [];
-      var grupos = {};
-      var aulaSeparadas = [];
-      var aulasUnicas = [];
-  
-      var file = new File(selectedFilePath);
-      if (!file.exists) {
-          alert('File does not exist: ' + selectedFilePath);
-          return;
-      }
-  
-      readJSONFile(file);
-      separarIguais(aula);
-      separaUpdateLista();
-      tempoMarker(); 
-  
-      function readJSONFile(file) {
-          file.open("r");    
-          var data = file.read();
-          file.close();
-          data = JSON.parse(data);
-          
-          for (var i = 0; i < data.length; i++) {
-              var item = data[i];
-              aula.push(item["Column1"]);
-              tempo.push(item["Column2"]);
-              tipo.push(item["Column4"]);
-              texto.push(item["Column5"]);
-          }
-      }
-  
-      function separarIguais(arr) {
-          grupos = {};
-  
-          for (var i = 0; i < arr.length; i++) {
-              var valor = arr[i];
-  
-              if (!grupos[valor]) {
-                  grupos[valor] = [];
-              }
-  
-              grupos[valor].push(i);  // Store index
-          }
-  
-          for (var chave in grupos) {
-              if (grupos.hasOwnProperty(chave)) {
-                  aulaSeparadas.push(grupos[chave]);
-              }
-          }
-      }
-  
-      function separaUpdateLista() {
-          for (var chave in grupos) {
-              if (grupos.hasOwnProperty(chave)) {
-                  aulasUnicas.push(chave);
-              }
-          }
-      } 
-  
-      function tempoMarker() {
-          var index = aulasUnicas.indexOf(qualAula);
-          if (index === -1) {
-              alert('Aula not found: ' + qualAula);
-              return;
-          }
-          var indices = aulaSeparadas[index]; // Indices of the selected 'aula'
-          var numeroAula = indices.length;
-          var selected = app.project.activeSequence.getSelection();
-          if (selected.length === 0) {
-              alert('No items selected in the timeline.');
-              return;
-          }
-          var projectItem = selected[0].projectItem;
-          var markers = projectItem.getMarkers();
-  
-          for (var t = 0; t < numeroAula; t++) {
-              var idx = indices[t]; // Index into the arrays
-              var tempoFormated = tempo[idx];
-              var partes = tempoFormated.split(':');
-              var minutos = parseInt(partes[0], 10);
-              var segundos = parseInt(partes[1], 10);
-              var tempoSec = minutos * 60 + segundos;
-  
-              var newMark = markers.createMarker(tempoSec);
-              newMark.name = tipo[idx];
-              newMark.comments = texto[idx];
-  
-              if (tipo[idx] == "Corte") {
-                  newMark.setColorByIndex(1);
-              } else if (tipo[idx] == "Destaque") {
-                  newMark.setColorByIndex(2);
-              } else if (tipo[idx] == "Inserção") {
-                  newMark.setColorByIndex(4);
-              } else if (tipo[idx] == "Lettering") {
-                  newMark.setColorByIndex(6);
-              } else if (tipo[idx] == "Tópicos") {
-                  newMark.setColorByIndex(0);
-              }
-          }
-      }
-  
+        var projectFolderPath = $.runScript.getProjectFolderPath();
+        if (!projectFolderPath) {
+            alert('Nenhum projeto aberto.');
+            return;
+        }
+        var dataFilePath = projectFolderPath + "/cleaned_data.json";
+        processMarkersFromFile(dataFilePath, 'track');
     }
-  
-  };
-  
+
+};
+
+// Function to read data from file and process markers
+function processMarkersFromFile(dataFilePath, target) {
+    var file = new File(dataFilePath);
+    if (!file.exists) {
+        alert('Arquivo cleaned_data.json não encontrado no diretório do projeto.');
+        return;
+    }
+
+    file.open("r");    
+    var dataContent = file.read();
+    file.close();
+    var data = JSON.parse(dataContent);
+
+    processMarkers(data, target);
+}
+
+// Function to process markers
+function processMarkers(data, target) {
+    // Ensure 'qualAula' is defined
+    if (typeof qualAula === 'undefined' || !qualAula) {
+        alert('Aula não definida. Por favor, selecione uma aula.');
+        return;
+    }
+
+    var aula = [];
+    var tempo = [];
+    var tipo = [];
+    var texto = [];
+    var grupos = {};
+
+    // Populate arrays and group data by 'aula'
+    for (var i = 0; i < data.length; i++) {
+        var item = data[i];
+        aula.push(item["Column1"]);
+        tempo.push(item["Column2"]);
+        tipo.push(item["Column4"]);
+        texto.push(item["Column5"]);
+
+        var valor = item["Column1"];
+        if (!grupos[valor]) {
+            grupos[valor] = [];
+        }
+        grupos[valor].push(i); // Store index
+    }
+
+    // Access the indices for the selected 'qualAula'
+    var indices = grupos[qualAula];
+    if (!indices) {
+        alert('Aula não encontrada: ' + qualAula);
+        return;
+    }
+
+    var numeroAula = indices.length;
+    var sequence = app.project.activeSequence;
+    if (!sequence) {
+        alert('Nenhuma sequência ativa.');
+        return;
+    }
+
+    var markers;
+    if (target === 'timeline') {
+        markers = sequence.markers;
+    } else if (target === 'track') {
+        var selected = sequence.getSelection();
+        if (selected.length === 0) {
+            alert('Nenhum item selecionado na timeline.');
+            return;
+        }
+        var projectItem = selected[0].projectItem;
+        markers = projectItem.getMarkers();
+    } else {
+        alert('Destino desconhecido para os marcadores.');
+        return;
+    }
+
+    for (var t = 0; t < numeroAula; t++) {
+        var idx = indices[t]; // Index into the arrays
+        var tempoFormated = tempo[idx];
+
+        // Handle time parsing, considering possible formats
+        var tempoSec = parseTimeToSeconds(tempoFormated);
+
+        if (isNaN(tempoSec)) {
+            alert('Formato de tempo inválido');
+            continue;
+        }
+
+        var markerTime = tempoSec; // Time in seconds
+
+        var newMark = markers.createMarker(markerTime);
+        newMark.name = tipo[idx];
+        newMark.comments = texto[idx];
+
+        // Set marker color based on 'tipo'
+        switch (tipo[idx]) {
+            case "Corte":
+                newMark.setColorByIndex(1);
+                break;
+            case "Destaque":
+                newMark.setColorByIndex(2);
+                break;
+            case "Inserção":
+                newMark.setColorByIndex(4);
+                break;
+            case "Lettering":
+                newMark.setColorByIndex(6);
+                break;
+            case "Tópicos":
+                newMark.setColorByIndex(0);
+                break;
+            default:
+                newMark.setColorByIndex(5); // Default color
+                break;
+        }
+    }
+}
+
+// Helper function to parse time string to seconds
+function parseTimeToSeconds(timeStr) {
+    var partes = timeStr.split(':');
+    if (partes.length === 2) {
+        var minutos = parseInt(partes[0], 10);
+        var segundos = parseFloat(partes[1]);
+        return minutos * 60 + segundos;
+    } else if (partes.length === 3) {
+        var horas = parseInt(partes[0], 10);
+        var minutos = parseInt(partes[1], 10);
+        var segundos = parseFloat(partes[2]);
+        return horas * 3600 + minutos * 60 + segundos;
+    } else {
+        return NaN;
+    }
+}

@@ -1,10 +1,12 @@
+// process-sheet.js
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const XLSX = require('xlsx');
 
-// URL da planilha (troque com o link da sua planilha)
+// URL da planilha
 const sheetID = process.argv[2];
+const outputDir = process.argv[3]; // New argument for output directory
 const sheetURL = 'https://docs.google.com/spreadsheets/d/' + sheetID + '/export?format=xlsx';
 
 // Caminho temporário para salvar o arquivo XLSX baixado
@@ -13,9 +15,8 @@ const tempFilePath = path.join(os.tmpdir(), 'temp_sheet.xlsx');
 // Caminho temporário para salvar o arquivo JSON extraído
 const tempJsonPath = path.join(os.tmpdir(), 'extracted_data.json');
 
-// Caminho para salvar o arquivo JSON limpo na área de trabalho
-const desktopDir = path.join(os.homedir(), 'Desktop');
-const outputFilePath = path.join(desktopDir, 'cleaned_data.json');
+// Caminho para salvar o arquivo JSON limpo no diretório do projeto
+const outputFilePath = path.join(outputDir, 'cleaned_data.json');
 
 // Função para baixar o arquivo XLSX
 async function downloadSheet(url, destination) {
@@ -111,7 +112,7 @@ async function main() {
         fs.unlinkSync(tempFilePath);
         console.log('Arquivo temporário XLSX deletado.');
 
-        // Limpa o JSON gerado e salva na área de trabalho
+        // Limpa o JSON gerado e salva no diretório do projeto
         cleanJSON(tempJsonPath, outputFilePath);
 
         // Remove o arquivo JSON temporário
