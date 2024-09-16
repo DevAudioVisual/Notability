@@ -70,7 +70,7 @@ function processSheet(filePath) {
     console.log(`Dados extraídos e salvos como JSON no diretório temporário: ${tempJsonPath}`);
 }
 
-// Função para limpar o JSON e preencher os espaços vazios na Column1
+// Função para limpar o JSON e preencher os espaços vazios na Column1 e Column2
 function cleanJSON(filePath, outputFilePath) {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
@@ -88,11 +88,18 @@ function cleanJSON(filePath, outputFilePath) {
             return !(isColumnAVazia && isColumnBVazia && isColumnCIgualWhite && isColumnDVazia && isColumnEVazia) && !isEmptyRow;
         })
         .map(row => {
+            // Preencher Column1 com o último valor não vazio
             if (row.Column1 === '') {
                 row.Column1 = lastNonEmptyColumn1;
             } else {
                 lastNonEmptyColumn1 = row.Column1;
             }
+
+            // Preencher Column2 com '0:00' se estiver vazio
+            if (row.Column2 === '') {
+                row.Column2 = '0:00';
+            }
+
             return row;
         });
 
