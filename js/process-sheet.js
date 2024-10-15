@@ -6,7 +6,7 @@ const XLSX = require('xlsx');
 
 // URL da planilha
 const sheetID = process.argv[2];
-const outputDir = process.argv[3]; // New argument for output directory
+const outputDir = process.argv[3]; // Diretório de saída para o projeto
 const sheetURL = 'https://docs.google.com/spreadsheets/d/' + sheetID + '/export?format=xlsx';
 
 // Caminho temporário para salvar o arquivo XLSX baixado
@@ -60,7 +60,7 @@ function processSheet(filePath) {
         for (let C = 0; C <= 4; ++C) {
             const cellAddress = { c: C, r: R };
             const cell = worksheet[XLSX.utils.encode_cell(cellAddress)];
-            row[`Column${C+1}`] = cell ? cell.v : '';
+            row[`Column${C + 1}`] = cell ? cell.v : '';
         }
         desiredData.push(row);
     }
@@ -88,14 +88,12 @@ function cleanJSON(filePath, outputFilePath) {
             return !(isColumnAVazia && isColumnBVazia && isColumnCIgualWhite && isColumnDVazia && isColumnEVazia) && !isEmptyRow;
         })
         .map(row => {
-            // Preencher Column1 com o último valor não vazio
             if (row.Column1 === '') {
                 row.Column1 = lastNonEmptyColumn1;
             } else {
                 lastNonEmptyColumn1 = row.Column1;
             }
 
-            // Preencher Column2 com '0:00' se estiver vazio
             if (row.Column2 === '') {
                 row.Column2 = '0:00';
             }
@@ -110,19 +108,24 @@ function cleanJSON(filePath, outputFilePath) {
 // Função principal para executar os passos
 async function main() {
     try {
+        // Baixar e processar a planilha na pasta temporária
         await downloadSheet(sheetURL, tempFilePath);
         console.log('Planilha baixada com sucesso.');
         
         processSheet(tempFilePath);
 
-        // Remove o arquivo temporário XLSX
+        // Remover o arquivo temporário XLSX
         fs.unlinkSync(tempFilePath);
         console.log('Arquivo temporário XLSX deletado.');
 
-        // Limpa o JSON gerado e salva no diretório do projeto
-        cleanJSON(tempJsonPath, outputFilePath);
+        // Limpar o JSON gerado e salvar na pasta temporária
+        cleanJSON(tempJsonPath, tempJsonPath);
 
-        // Remove o arquivo JSON temporário
+        // Copiar o arquivo JSON limpo da pasta temporária para o diretório do projeto
+        fs.copyFileSync(tempJsonPath, outputFilePath);
+        console.log('Arquivo JSON copiado para o diretório do projeto:', outputFilePath);
+
+        // Remover o arquivo temporário JSON
         fs.unlinkSync(tempJsonPath);
         console.log('Arquivo JSON temporário deletado.');
         
